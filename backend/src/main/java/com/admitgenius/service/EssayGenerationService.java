@@ -1,4 +1,5 @@
 package com.admitgenius.service;
+
 import com.admitgenius.config.OpenAIConfig;
 import com.admitgenius.dto.EssayDTO;
 import com.admitgenius.dto.EssayGenerationDTO;
@@ -22,41 +23,42 @@ public class EssayGenerationService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private EssayRepository essayRepository;
 
     @Autowired
     private SchoolRepository schoolRepository;
-    
+
     @Autowired
     private OpenAIConfig openaiConfig;
 
     private String openaiApiKey;
     private String openaiApiUrl;
     private String openaiModel = "moonshot-v1-32k"; // Kimi API 模型
-    
+
     /**
      * 根据用户提交的信息自动生成文书
      */
     public EssayDTO generateEssay(EssayGenerationDTO generationDTO) {
         User user = userRepository.findById(generationDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
-        
+
         String schoolNameForPrompt = null;
         if (generationDTO.getSchoolId() != null) {
             Optional<School> schoolOptional = schoolRepository.findById(generationDTO.getSchoolId());
             if (schoolOptional.isPresent()) {
                 schoolNameForPrompt = schoolOptional.get().getName();
             } else {
-                System.err.println("Warning: School ID " + generationDTO.getSchoolId() + " provided for essay generation but not found in database.");
+                System.err.println("Warning: School ID " + generationDTO.getSchoolId()
+                        + " provided for essay generation but not found in database.");
             }
         }
-                
+
         String prompt = buildPrompt(generationDTO, schoolNameForPrompt);
-        
+
         String generatedContent = callOpenAIApi(prompt);
-        
+
         Essay essay = new Essay();
         essay.setUser(user);
         essay.setTitle(generationDTO.getEssayTitle());
@@ -65,13 +67,13 @@ public class EssayGenerationService {
         essay.setCreatedAt(LocalDateTime.now());
         essay.setUpdatedAt(LocalDateTime.now());
         essay.setGeneratedBy(Essay.GenerationSource.AI_MODEL);
-        
+
         essay.setSchoolId(generationDTO.getSchoolId());
         essay.setWordLimit(generationDTO.getMaxWordCount());
         essay.setPrompt(generationDTO.getEssayPrompt());
-        
+
         Essay savedEssay = essayRepository.save(essay);
-        
+
         return convertToDTO(savedEssay);
     }
 
@@ -93,15 +95,17 @@ public class EssayGenerationService {
         dto.setPrompt(essay.getPrompt());
         return dto;
     }
-    
+
     /**
      * 构建AI提示语
      */
     private String buildPrompt(EssayGenerationDTO dto, String schoolName) {
         StringBuilder prompt = new StringBuilder();
-        
-        prompt.append("You are a professional study abroad application essay consultant, adept at crafting personalized and persuasive application essays for applicants.");
-        prompt.append("Please write an application essay for the applicant targeting a specific school and program based on the following information.\n\n");
+
+        prompt.append(
+                "You are a professional study abroad application essay consultant, adept at crafting personalized and persuasive application essays for applicants.");
+        prompt.append(
+                "Please write an application essay for the applicant targeting a specific school and program based on the following information.\n\n");
 
         prompt.append("## Applicant Information\n");
         if (schoolName != null && !schoolName.isEmpty()) {
@@ -115,8 +119,8 @@ public class EssayGenerationService {
         addField(prompt, "Essay Title", dto.getEssayTitle());
         addField(prompt, "Essay Prompt/Instructions", dto.getEssayPrompt());
         if (dto.getMinWordCount() != null || dto.getMaxWordCount() != null) {
-            String wordCountReq = (dto.getMinWordCount() != null ? dto.getMinWordCount() : "N/A") + " - " + 
-                                  (dto.getMaxWordCount() != null ? dto.getMaxWordCount() : "N/A") + " words";
+            String wordCountReq = (dto.getMinWordCount() != null ? dto.getMinWordCount() : "N/A") + " - " +
+                    (dto.getMaxWordCount() != null ? dto.getMaxWordCount() : "N/A") + " words";
             addField(prompt, "Word Count Requirement", wordCountReq);
         }
 
@@ -128,7 +132,8 @@ public class EssayGenerationService {
         prompt.append("\n");
 
         prompt.append("## Detailed Background Information (Example - reconstruct fully)\n");
-        if (dto.getGpa() != null) prompt.append("GPA: ").append(dto.getGpa()).append("\n");
+        if (dto.getGpa() != null)
+            prompt.append("GPA: ").append(dto.getGpa()).append("\n");
         // ... many more fields from DTO ...
 
         prompt.append("\nBased on all the provided information, please generate a compelling essay.");
@@ -149,7 +154,8 @@ public class EssayGenerationService {
     }
 
     private String formatGPA(Double gpa, String scale) {
-        if (gpa == null || scale == null) return "未提供";
+        if (gpa == null || scale == null)
+            return "未提供";
         return String.format("%.2f/%s（专业前%d%%）", gpa, scale, calculatePercentage(gpa, scale));
     }
 
@@ -157,7 +163,7 @@ public class EssayGenerationService {
         double max = Double.parseDouble(scale);
         return (int) ((gpa / max) * 100);
     }
-    
+
     /**
      * 调用OpenAI API
      */
@@ -165,35 +171,35 @@ public class EssayGenerationService {
         try {
             openaiApiKey = openaiConfig.getApi().getKey();
             openaiApiUrl = openaiConfig.getApi().getProxyUrl() + "/chat/completions";
-            
+
             if (openaiApiKey == null || openaiApiKey.trim().isEmpty()) {
                 throw new RuntimeException("OpenAI API密钥未配置");
             }
-            
-            System.out.println("调用OpenAI的API密钥: " + (openaiApiKey.length() > 10 ? 
-                openaiApiKey.substring(0, 10) + "..." : "密钥过短"));
+
+            System.out.println(
+                    "调用OpenAI的API密钥: " + (openaiApiKey.length() > 10 ? openaiApiKey.substring(0, 10) + "..." : "密钥过短"));
             System.out.println("调用OpenAI的URL: " + openaiApiUrl);
 
             RestTemplate restTemplate = new RestTemplate();
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(openaiApiKey);
-            
+
             Map<String, Object> message = new HashMap<>();
             message.put("role", "user");
             message.put("content", prompt);
-            
+
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", openaiModel);
-            requestBody.put("messages", new Object[]{message});
+            requestBody.put("messages", new Object[] { message });
             requestBody.put("temperature", 0.7);
             requestBody.put("max_tokens", 4000);
-            
+
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-            
+
             ResponseEntity<Map> response = restTemplate.postForEntity(openaiApiUrl, entity, Map.class);
-            
+
             if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> responseBody = response.getBody();
                 if (responseBody != null && responseBody.containsKey("choices")) {
@@ -206,16 +212,16 @@ public class EssayGenerationService {
                 }
                 throw new RuntimeException("OpenAI API响应格式异常");
             }
-            
+
             throw new RuntimeException("调用OpenAI API失败: " + response.getStatusCode());
-            
+
         } catch (Exception e) {
             System.err.println("调用OpenAI API出错: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("调用OpenAI API出错: " + e.getMessage(), e);
         }
     }
-    
+
     /**
      * 计算文本的词数
      */
@@ -223,9 +229,9 @@ public class EssayGenerationService {
         if (text == null || text.isEmpty()) {
             return 0;
         }
-        
+
         String[] words = text.split("\\s+");
         return words.length;
     }
-    
-} 
+
+}

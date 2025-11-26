@@ -19,7 +19,9 @@ public class OpenAIConfig {
     @PostConstruct
     public void init() {
         System.out.println("========== OpenAIConfig 加载完成 ==========");
-        System.out.println("openai.api.key: " + (api.getKey() != null ? api.getKey().substring(0, Math.min(15, api.getKey().length())) + "..." : "NULL"));
+        System.out.println("openai.api.key: "
+                + (api.getKey() != null ? api.getKey().substring(0, Math.min(15, api.getKey().length())) + "..."
+                        : "NULL"));
         System.out.println("openai.api.proxyUrl: " + api.getProxyUrl());
         System.out.println("openai.proxy.url: " + proxyUrl);
         System.out.println("============================================");
