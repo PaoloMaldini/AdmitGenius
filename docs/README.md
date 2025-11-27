@@ -1,6 +1,6 @@
-# AdmitGenius 前端
+# 留学者指南 前端
 
-这是 AdmitGenius 项目的前端代码仓库，基于 Vue 3 + TypeScript + Vite + Element Plus 构建。
+这是 留学者指南 项目的前端代码仓库，基于 Vue 3 + TypeScript + Vite + Element Plus 构建。
 
 ## 项目特点
 
@@ -77,4 +77,4 @@ npm run build
 
 ## 许可证
 
-Copyright © 2023 AdmitGenius 
+Copyright © 2025 留学者指南 

@@ -1,4 +1,4 @@
-@startuml AdmitGenius类图
+@startuml 留学者指南类图
 
 ' 设置样式
 skinparam classAttributeIconSize 0
@@ -11,7 +11,7 @@ skinparam titleFontStyle bold
 skinparam linetype ortho
 skinparam packageStyle rectangle
 
-title AdmitGenius申请管理系统 - 类图
+title 留学者指南申请管理系统 - 类图
 
 package "用户体系" {
   abstract class User {

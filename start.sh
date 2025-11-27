@@ -3,7 +3,7 @@
 # 获取脚本所在的目录
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-echo "正在启动 AdmitGenius 系统..."
+echo "正在启动 留学者指南 系统..."
 echo "脚本运行目录: $SCRIPT_DIR"
 
 echo "启动后端服务..."
@@ -18,7 +18,7 @@ echo "启动前端服务..."
 cd "$SCRIPT_DIR/frontend" && npm run dev &
 FRONTEND_PID=$!
 
-echo "AdmitGenius 系统启动完成！"
+echo "留学者指南 系统启动完成！"
 echo "后端服务运行在: http://localhost:7077"
 echo "前端服务运行在: http://localhost:5173"
 

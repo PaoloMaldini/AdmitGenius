@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# AdmitGenius 后端部署脚本
+# 留学者指南 后端部署脚本
 # 使用方法: ./deploy.sh [环境] [操作]
 # 环境: dev, prod
 # 操作: build, run, stop, restart
@@ -209,7 +209,7 @@ show_logs() {
 
 # 主函数
 main() {
-    log_info "AdmitGenius 后端部署脚本"
+    log_info "留学者指南 后端部署脚本"
     log_info "环境: $ENVIRONMENT, 操作: $ACTION"
     
     case $ACTION in

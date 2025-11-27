@@ -1,4 +1,4 @@
--- AdmitGenius 数据库初始化脚本
+-- 留学者指南 数据库初始化脚本
 
 SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
